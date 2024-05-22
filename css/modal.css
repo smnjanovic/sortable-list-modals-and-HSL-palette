@@ -1,0 +1,122 @@
+.modal-bg {
+	box-sizing: content-box;
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	margin: 0;
+	border: none;
+	padding: 0;
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+	backdrop-filter: blur(4px) saturate(50%) brightness(45%);
+	background: hsla(var(--hue), calc(1% * var(--sat)), calc(1% * var(--lum)), 20%);
+	font-size: 16px;
+
+	& * {
+		box-sizing: content-box;
+	}
+
+	.modal-container {
+		margin: 0;
+		border: none;
+		padding: 0px 1em 0.25em;
+		width: max-content;
+		min-width: calc(360px - 2 * 1em);
+		max-width: calc(100% - 2 * 1em);
+		overflow: hidden;
+		background: var(--primary);
+		color: var(--contrast);
+		display: flex;
+		flex-flow: column nowrap;
+
+		& fieldset {
+			border-width: 1px;
+			border-style: solid;
+			border-color: var(--contrast);
+			margin: 0;
+			padding: 0.75em;
+			width: calc(100% - 2 * (0.75em + 1px));
+		}
+
+		& [class^=modal-] {
+			margin: 4px 0;
+			padding: 0;
+			width: 100%;
+		}
+
+		& .modal-message {
+			text-align: center;
+			display: -webkit-box;
+			-webkit-line-clamp: 5;
+			-webkit-box-orient: vertical;
+			text-overflow: ellipsis;
+			overflow: hidden;
+		}
+
+		& .modal-errors {
+			&:empty {
+				display: none;
+			}
+		}
+
+		& .modal-form {
+			margin:0.5em 0.25em;
+			border: none;
+			padding: 0.25em;
+			width: calc(100% - 2 * (0.25em + 0px + 0.25em));
+			&:empty {
+				display: none;
+			}
+
+			& .modal-prompt {
+				background-color: var(--harmony-secondary);
+				margin: 2px;
+				border: groove 3px var(--contrast);
+				padding: 2px;
+				width: calc(100% - 2 * (2px + 3px + 2px));
+
+				&::placeholder {
+					color: var(--contrast);
+					opacity: 1;
+				}
+
+				&::-ms-input-placeholder {
+					color: var(--contrast);
+				}
+
+				&:hover {
+					background: hsl(var(--hue), calc(1% * var(--sat)), calc(1% * ((var(--lum) - 50) * 40 / abs(calc(var(--lum) - 50)) + 50)));
+				}
+
+				&:active, &:focus {
+					background: hsl(var(--hue), calc(1% * var(--sat)), calc(1% * ((var(--lum) - 50) * 48 / abs(calc(var(--lum) - 50)) + 50)));
+					outline: none;
+					&::placeholder { color: var(--secondary) }
+					&::-ms-input-placeholder { color: var(--secondary) }
+				}
+			}
+		}
+
+		& .modal-actions {
+			display: flex;
+			flex-flow: row wrap;
+			justify-content: center;
+			& button {
+				margin: 2px;
+				border: ridge 3px transparent;
+				color: var(--harmony-secondary);
+				background: var(--secondary);
+				padding: 2px 4px;
+				&:hover {
+					border-color: var(--contrast);
+					color: var(--contrast);
+					background: var(--harmony-secondary);
+				}
+			}
+		}
+	}
+}
