@@ -3,6 +3,7 @@
 	--sat: 0;
 	--lum: 10;
 }
+
 * {
 	--hue: inherit;
 	--sat: inherit;
@@ -14,39 +15,21 @@
 	--clum: calc(50 - 35 * (2 * min(round(down, calc(var(--lum)/var(--lum-split)), 1), 1) - 1));
 	--plum: calc(100 - var(--clum));
 	--hlum: calc(var(--mult) * max(calc((var(--lum) - 50) * var(--mult) + 10 * min(max(calc((var(--lum) - var(--plum)) * var(--mult) + 11), 0), 1)), calc((var(--plum) - 50) * var(--mult))) + 50);
-	--primary: hsl(var(--hue), calc(1% * var(--sat)),
-		calc(1% * (
-				var(--mult) * min(
-					calc(var(--mult) * (var(--lum) - 50)),
-					calc(var(--mult) * (var(--plum) - 50))
-				) + 50
-			)
-		)
-	);
-	--secondary: hsl(var(--hue), calc(1% * var(--sat)),
-		calc(1% * (
-				var(--lum) - (var(--lum) - calc(
-					50 - var(--mult) * min(
-						calc((50 - var(--lum)) * var(--mult)),
-						calc((var(--clum) - 50) * var(--mult))
-					)
-				)) * (2/3)
-			)
-		)
-	);
-	--tertiary: hsl(var(--hue), calc(1% * var(--sat)), calc(1% * (var(--clum) + 15 * var(--mult))));
+	--primary-lum: calc(var(--mult) * min(
+		calc(var(--mult) * (var(--lum) - 50)),
+		calc(var(--mult) * (var(--plum) - 50))
+	) + 50);
+	--secondary-lum: calc(var(--lum) - (var(--lum) - var(--clum)) * (2/5));
+	--tertiary-lum: calc(var(--lum) - (var(--lum) - var(--clum)) * (2/3));
+	--harmony-primary-lum: calc(var(--mult) * max(
+		calc(var(--mult) * (var(--lum) - 50)),
+		calc(var(--mult) * (var(--plum) - 50))
+	) + 50);
+	--harmony-secondary-lum: calc((var(--primary-lum) + var(--harmony-primary-lum)) / 2);
+	--primary: hsl(var(--hue), calc(1% * var(--sat)), calc(1% * var(--primary-lum)));
+	--secondary: hsl(var(--hue), calc(1% * var(--sat)), calc(1% * var(--secondary-lum)));
+	--tertiary: hsl(var(--hue), calc(1% * var(--sat)), calc(1% * var(--tertiary-lum)));
 	--contrast: hsl(var(--hue), calc(1% * var(--sat)), calc(1% * var(--clum)));
-	--harmony-primary: hsl(var(--hue), calc(1% * var(--sat)),
-		calc(1% * (
-				var(--mult) * max(
-					calc(var(--mult) * (var(--lum) - 50)),
-					calc(var(--mult) * (var(--plum) - 50))
-				) + 50
-			)
-		)
-	);
-	--harmony-secondary: hsl(var(--hue), calc(1% * var(--sat)), calc(var(--hlum) * 1%));
-	&:hover {
-		--hyper-contrast: hsl(var(--hue), calc(1% * var(--sat)), calc((var(--lum) - (var(--lum) - var(--clum)) * (4/5)) * 1%));
-	}
+	--harmony-primary: hsl(var(--hue), calc(1% * var(--sat)), calc(1% * var(--harmony-primary-lum)));
+	--harmony-secondary: hsl(var(--hue), calc(1% * var(--sat)), calc(1% * var(--harmony-secondary-lum)));
 }

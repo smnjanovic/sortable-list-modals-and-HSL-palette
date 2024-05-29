@@ -1,55 +1,219 @@
 /* global Action */
 
+/**
+ * This is a general class that contains and manages an interactive list
+ * of certain type of data, that can be added, removed, edited, sorted
+ * or wiped out. What happens after these events occur may be
+ * determined in its subclass.
+ */
 class SortableList {
+	/**
+	 * last ID
+	 * @static
+	 * @private
+	 * @type Number
+	 */
 	static #ID = 0;
+	/**
+	 * A link to SVG namespace
+	 * @static
+	 * @private
+	 * @type String
+	 */
 	static #SVG = 'http://www.w3.org/2000/svg';
-	static get DRAG_INDEX() { return 'DRAG_INDEX'; };
-	static get DRAG_LIST() { return 'DRAG_LIST'; };
+	/**
+	 * A unique id of this list container
+	 * @private
+	 * @type Number
+	 */
 	#id = ++SortableList.#ID;;
+	/**
+	 * A unique id of this list's container
+	 * @private
+	 * @type Number
+	 */
 	#name;
-	#format;
+	/**
+	 * DOM Element containing user interface to manage the list.
+	 * @private
+	 * @type Element
+	 */
 	#html;
+	/**
+	 * Parent element of the item elements.
+	 * @private
+	 * @type Element
+	 */
+	#body;
+	/**
+	 * Heading element containing title.
+	 * @private
+	 * @type Element
+	 */
+	#title;
+	/**
+	 * An actual list of data
+	 * @private
+	 * @type Array
+	 */
 	#list = [];
+	/**
+	 * List of possible actions related to the whole list
+	 * @private
+	 * @see {Action}
+	 * @type Array
+	 */
 	#optionsList = [];
+	/**
+	 * List of possible actions related to a single list item
+	 * @private
+	 * @see {Action}
+	 * @type Array
+	 */
 	#optionsItem = [];
-	#disposableList = true;
-	#disposableItems = true;
+	/**
+	 * True, if list is allowed to be removed from HTML document by a user.
+	 * @private
+	 * @type Boolean
+	 */
+	#listDisposable = true;
+	/**
+	 * Old index of currently dragged item
+	 * @private
+	 * @type Number
+	 */
 	#dragged = -1;
 
+	/**
+	 * Provide a unique id of this instance's element id.
+	 * @public
+	 * @type String
+	 */
 	get id() { return `sl-${this.#id}`; }
-	get length() { return this.#list.length; };
-
-	get itemRemovalTitle_() { return "Odstránenie položky"; };
-	get itemRemovalMessage_() { return "Akcia je nevratná. Chcete pokračovať?"; };
-	get itemRemovalYes_() { return "Vymazať"; };
-	get itemRemovalNo_() { return "Späť"; };
-	get itemRemovalDenied_() { return "Odstránenie tejto položky nie je povolené!"; };
-
-	get listRemovalTitle_() { return "Vyprázdnenie zoznamu položiek!"; };
-	get listRemovalMessage_() { return "Akcia je nevratná. Chcete pokračovať?"; };
-	get listRemovalYes_() { return "Áno"; };
-	get listRemovalNo_() { return "Nie"; };
-	
-	get listDisposalTitle_() { return "Vyprázdnenie zoznamu položiek!"; };
-	get listDisposalMessage_() { return "Tento zoznam bude odstránený z obsahu stránky!"; };
-	get listDisposalYes_() { return "Áno"; };
-	get listDisposalNo_() { return "Nie"; };
-	get listDisposalDenied_() { return "Odstránenie zoznamu nie je povolené!"; };
 
 	/**
-	 * 
-	 * @param {String} name
-	 * @returns {SortableList}
+	 * List length
+	 * @public
+	 * @type Number
+	 */
+	get length() { return this.#list.length; };
+
+	#itemRemovalTitle = "Odstrániť položku";
+	#itemRemovalMessage = "Akcia je nevratná. Chcete pokračovať?";
+	#itemRemovalYes = "Vymazať";
+	#itemRemovalNo = "Späť";
+	#listRemovalTitle = "Vyprázdniť zoznam položiek!";
+	#listRemovalMessage = "Akcia je nevratná. Chcete pokračovať?";
+	#listRemovalYes = "Áno";
+	#listRemovalNo = "Nie";
+	#listDisposalTitle = "Zatvoriť!";
+	#listDisposalDenied = "Odstránenie zoznamu nie je povolené!";
+
+	/**
+	 * Modal title related to permanent list item removal
+	 * @protected
+	 * @type String
+	 */
+	get itemRemovalTitle() { return this.#itemRemovalTitle; };
+	set itemRemovalTitle(value) { this.#itemRemovalTitle = this.#stringOrThrow(value); };
+	
+	/**
+	 * Modal message related to permanent list item removal
+	 * @protected
+	 * @type String
+	 */
+	get itemRemovalMessage() { return this.#itemRemovalMessage; };
+	set itemRemovalMessage(value) { this.#itemRemovalMessage = this.#stringOrThrow(value); };
+	/**
+	 * Modal confirm button text related to permanent list item removal
+	 * @protected
+	 * @type String
+	 */
+	get itemRemovalYes() { return this.#itemRemovalYes; };
+	set itemRemovalYes(string) { this.#itemRemovalYes = this.#stringOrThrow(string); };
+	/**
+	 * Modal cancel button text related to permanent list item removal
+	 * @protected
+	 * @type String
+	 */
+	get itemRemovalNo() { return this.#itemRemovalNo; };
+	set itemRemovalNo(string) { this.#itemRemovalNo = this.#stringOrThrow(string); };
+
+	/**
+	 * Modal title related to permanent list wipe out
+	 * @protected
+	 * @type String
+	 */
+	get listRemovalTitle() { return this.#listRemovalTitle; };
+	set listRemovalTitle(string) { this.#listRemovalTitle = this.#stringOrThrow(string); };
+	/**
+	 * Modal message related to permanent list wipe out
+	 * @protected
+	 * @type String
+	 */
+	get listRemovalMessage() { return this.#listRemovalMessage; };
+	set listRemovalMessage(string) { this.#listRemovalMessage = this.#stringOrThrow(string); };
+	/**
+	 * Modal confirm button text related to permanent list wipe out
+	 * @protected
+	 * @type String
+	 */
+	get listRemovalYes() { return this.#listRemovalYes; };
+	set listRemovalYes(string) { this.#listRemovalYes = this.#stringOrThrow(string); };
+	/**
+	 * Modal cancel button text related to permanent list wipe out
+	 * @protected
+	 * @type String
+	 */
+	get listRemovalNo() { return this.#listRemovalNo; };
+	set listRemovalNo(string) { this.#listRemovalNo = this.#stringOrThrow(string); };
+	
+	/**	 * Modal title related to permanent list disposal
+	 * @protected
+	 * @type String
+	 */
+	get listDisposalTitle() { return this.#listDisposalTitle; };
+	set listDisposalTitle(string) { this.#listDisposalTitle = this.#stringOrThrow(string); };
+	/**
+	 * Modal warning related to unauthorized list disposal
+	 * @protected
+	 * @type String
+	 */
+	get listDisposalDenied() { return this.#listDisposalDenied; };
+	set listDisposalDenied(string) { this.#listDisposalDenied = this.#stringOrThrow(string); };
+
+
+	/**
+	 * @public
+	 * @class Create a sortable list container.
+	 * @param {String} name - Name of the list.
 	 */
 	constructor(name) {
 		this.#name = name;
 		this.#html = this.buildContainer_();
 	}
 
+	#stringOrThrow(input) {
+		if (input && ['function', 'object'].some(it => typeof input === it))
+			throw new Error("Invalid type!");
+		return `${input ?? ''}`;
+	}
+
 	/**
-	 * sets new data
-	 * @param {Object} items
-	 * @returns {undefined}
+	 * Renames the list
+	 * @param {String} title
+	 */
+	rename(title) {
+		this.#title.innerText = title;
+	}
+
+	/**
+	 * Replace the old list with a new one.
+	 * @public
+	 * @param {Object} items - A new list of arguments forming a new list
+	 * replacing the old one. Each item must be a valid due to 
+	 * {SortableList.validateItem_} method.
+	 * @throws Error if there is at least one invalid item among arguments.
 	 */
 	setData(...items) {
 		if (items.every(it => this.validateItem_(it))) {
@@ -61,55 +225,56 @@ class SortableList {
 		else throw new Error("Some items are invalid!");
 	}
 
+	/**
+	 * Determine whether the list is is allowed to be removed from the document.
+	 * Data will not be lost as long as this instance exists.
+	 * @public
+	 * @param {Boolean} disposable - True, if the list is allowed to be removed.
+	 */
 	setDisposableList(disposable) {
-		this.#disposableList = disposable;
-		this.#html.dataset.disposableList = disposable;
-	}
-
-	setDisposableItems(disposable) {
-		this.#disposableItems = disposable;
-		this.#html.dataset.disposableItems = disposable;
+		this.#listDisposable = disposable;
+		this.#html.dataset.disposable = disposable;
 	}
 
 	/**
-	 * 
-	 * @param {Action} options
-	 * @returns {undefined}
+	 * Replace current set of Actions related to the entire list.
+	 * @public
+	 * @param {Action} actions
 	 */
-	setListOptions(...options) {
-		if (options.every(it => it instanceof Action)) {
-			this.#optionsList = [...options];
+	setListOptions(...actions) {
+		if (actions.every(it => it instanceof Action)) {
+			this.#optionsList = [...actions];
 			this.#html.dataset.optionsList = this.#optionsList.length > 0;
 		} else throw new Error("Some arguments are invalid! An instance of Action is required!");
 	}
 
 	/**
-	 * 
-	 * @param {Action} options
-	 * @returns {undefined}
+	 * Replace current set of Actions related to a single list item.
+	 * @public
+	 * @param {Action} actions
 	 */
-	setItemOptions(...options) {
-		if (options.every(it => it instanceof Action)) {
-			this.#optionsItem = [...options];
+	setItemOptions(...actions) {
+		if (actions.every(it => it instanceof Action)) {
+			this.#optionsItem = [...actions];
 			this.#html.dataset.optionsItem = this.#optionsItem.length > 0;
 		} else throw new Error("Some arguments are invalid! An instance of Action is required!");
 	}
 
 	/**
-	 * inserts sortable list into a html element
+	 * Insert sortable list into a html document
+	 * @public
 	 * @param {Element} parent
 	 * @param {Element} before
-	 * @returns {undefined}
 	 */
 	setAsChild(parent, before) {
 		parent.insertBefore(this.#html, before);
 	}
 
 	/**
-	 * 
+	 * It replaces old item at the specific position.
+	 * @public
 	 * @param {Number} pos
-	 * @param {Object} item
-	 * @returns {undefined}
+	 * @param {Object} item - replacement item
 	 */
 	updateItem(pos, item) {
 		if (0 <= pos && pos < this.length) {
@@ -118,130 +283,146 @@ class SortableList {
 		} else throw new Error("Inserting failed! Index out of bounds!");
 	}
 
+	/**
+	 * Create HTML element containing the entire interactive list
+	 * @protected
+	 * @returns {Element}
+	 */
 	buildContainer_() {
-		const container = el({
-			[`#${this.id}.sortable-list`] : [{
-				'.sortable-header' : [{
-					".sortable-list-title": [{ h3: this.#name }]
-				}, {
-					".sortable-list-actions": [{
-						'.sortable-list-options': [el({
-							"svg[viewBox=0 0 24 48][width=12][height=24]" : [{
-								"g[fill=inherit][stroke=none]": [11, 24, 37].map(it => `ellipse[rx=5][ry=4][cx=12][cy=${it}]`)
-							}]
-						}, SortableList.#SVG)]
-					}, {
-						'.sortable-list-remove': [el({
-							"svg[viewBox=0 0 48 48][width=24][height=24]" : [{
-								"g[fill=none][stroke=inherit][stroke-width=6][stroke-linecap=round]": [
-									"path[d=M12,12 l24,24 m0,-24 l-24,24]"
-								]
-							}]
-						}, SortableList.#SVG)]
-					}]
-				}]
-			}, {
-				'.sortable-body': []
-			}, {
-				'.sortable-footer' : [{
-					'.sortable-add': [el({
-						"svg[viewBox=0 0 48 48][width=32][height=32]" : [{
-							"g[fill=none][stroke=inherit][stroke-width=6][stroke-linecap=round]": [
-								"path[d=M12,24 h24 m-12,-12 v24]"
-							]
-						}]
-					}, SortableList.#SVG)]
-				}, {
-					'.sortable-clear': [el({
-						"svg[viewBox=0 0 48 48][width=32][height=32]" : [{
-							"g[stroke=none][fill=inherit]": [
-								"path[d=M39.5,9 A1 1 45 0 1 42,12.5 L31,21 L35,26 "
-									+ "C36.25,28 36.25,28 33,32 L18,13.5 "
-									+ "C22.75,11 22.75,11 24,12 L28.5,17.5 Z]",
-								"path[d=M17.5,15 L5,20 L24,43 L31,32 Z]"
-							]
-						}]
-					}, SortableList.#SVG)]
-				}]
-			}]
-		});
-		container.dataset.disposableList = this.#disposableList;
-		container.dataset.disposableItems = this.#disposableItems;
+		const map = new Map();
+		const OPT = 'OPT';
+		const DEL = 'DEL';
+		const ADD = 'ADD';
+		const CLR = 'CLR';
+		const BODY = 'BODY';
+		const TITLE = 'TITLE';
+		const container = new El(`#${this.id}.sortable-list`, [
+			new El('.sortable-header', [
+				new El('.sortable-list-title', [
+					new El('h3', [this.#name], null, map, TITLE)
+				]),
+				new El('.sortable-list-actions', [
+					new El('.sortable-list-options', [
+						new El('svg[viewBox=0 0 24 48][width=12][height=24]', [
+							new El('g[fill=inherit][stroke=none]', [
+								new El(`ellipse[rx=5][ry=4][cx=12][cy=11]`, null, SortableList.#SVG),
+								new El(`ellipse[rx=5][ry=4][cx=12][cy=24]`, null, SortableList.#SVG),
+								new El(`ellipse[rx=5][ry=4][cx=12][cy=37]`, null, SortableList.#SVG)
+							], SortableList.#SVG)
+						], SortableList.#SVG)
+					], null, map, OPT),
+					new El('.sortable-list-remove', [
+						new El('svg[viewBox=0 0 48 48][width=24][height=24]', [
+							new El('g[fill=none][stroke=inherit][stroke-width=6][stroke-linecap=round]', [
+								new El('path[d=M12,12 l24,24 m0,-24 l-24,24]', null, SortableList.#SVG)
+							], SortableList.#SVG)
+						], SortableList.#SVG)
+					], null, map, DEL)
+				])
+			]),
+			new El('.sortable-body', null, null, map, BODY),
+			new El('.sortable-footer', [
+				new El('.sortable-add', [
+					new El('svg[viewBox=0 0 48 48][width=32][height=32]', [
+						new El('g[fill=none][stroke=inherit][stroke-width=6][stroke-linecap=round]', [
+							new El('path[d=M12,24 h24 m-12,-12 v24]', null, SortableList.#SVG)
+						], SortableList.#SVG)
+					], SortableList.#SVG)
+				], null, map, ADD),
+				new El('.sortable-clear', [
+					new El('svg[viewBox=0 0 48 48][width=32][height=32]', [
+						new El('g[stroke=none][fill=inherit]', [
+							new El('path[d=M39.5,9 A1 1 45 0 1 42,12.5 L31,21 '
+									+ 'L35,26 C36.25,28 36.25,28 33,32 L18,13.5 '
+									+ 'C22.75,11 22.75,11 24,12 L28.5,17.5 Z]',
+									null, SortableList.#SVG),
+							new El('path[d=M17.5,15 L5,20 L24,43 L31,32 Z]', null, SortableList.#SVG)
+						], SortableList.#SVG)
+					], SortableList.#SVG)
+				], null, map, CLR)
+			])
+		]).build();
+		container.dataset.disposable = this.#listDisposable;
 		container.dataset.optionsList = this.#optionsList.length > 0;
 		container.dataset.optionsItem = this.#optionsItem.length > 0;
 
-		const options = container.querySelector(".sortable-list-options");
-		const disposal = container.querySelector(".sortable-list-remove");
-		const newItem = container.querySelector(".sortable-add");
-		const cleanup = container.querySelector(".sortable-clear");
-
-		options.addEventListener("click", e => this.#showOptions(e.x, e.y, -1, ...this.#optionsList));
-
-		disposal.addEventListener("click", () => {
-			const modal = this.#disposableList
-				? new ModalConfirm(
-					this.listDisposalTitle_, this.listDisposalMessage_,
-					it => { if (it) container.parentNode?.removeChild(container); },
-					this.listDisposalYes_, this.listDisposalNo_
-				) : new ModalAlert(this.listDisposalTitle_, this.listDisposalDenied_);
-			modal.show();
+		this.#body = map.get(BODY);
+		this.#title = map.get(TITLE);
+		map.get(OPT).addEventListener("click", e => new ContextMenu(...this.#optionsList).show(this.format_(this.#title?.innerText ?? ''), e.x, e.y));
+		map.get(DEL).addEventListener("click", () => {
+			if (this.#listDisposable) container.parentNode?.removeChild(container);
+			else new ModalAlert(this.listDisposalTitle, this.listDisposalDenied).show();
 		});
-
-		newItem.addEventListener("click", () => this.onCreateInsertModal_(newItem => {
+		map.get(ADD).addEventListener("click", () => this.onCreateInsertModal_(newItem => {
 			const pos = this.getInsertDefaultPosition_();
 			if (0 <= pos && pos <= this.length) {
 				this.onInsert_(pos, newItem);
 				this.onDatasetChanged_([...this.#list]);
 			} else throw new Error("Inserting failed! Index out of bounds!");
 		}).show());
-
-		cleanup.addEventListener("click", () => new ModalConfirm(
-				this.listRemovalTitle_, this.listRemovalMessage_, it => {
-					if (it) {
-						this.onClear_();
-						this.onDatasetChanged_([...this.#list]);
-					}
-				}, this.listRemovalYes_, this.listRemovalNo_).show());
+		map.get(CLR).addEventListener("click", () => new ModalConfirm(
+			this.listRemovalTitle, this.listRemovalMessage, it => {
+				if (it) {
+					this.onClear_();
+					this.onDatasetChanged_([...this.#list]);
+				}
+			}, this.listRemovalYes, this.listRemovalNo).show());
 
 		return container;
 	}
 
 	/**
-	 * 
-	 * @param {Any} item
+	 * Create HTML element containing data of a specific item
+	 * @protected
+	 * @param {Object} item
 	 * @returns {Node}
 	 */
 	buildItem_(item) {
-		const node = el({
-			'.sortable-item': [{
-				'.sortable-item-dragzone': [el({
-					"svg[viewBox=0 0 48 48][width=42][height=42]" : [{
-						"g[fill=none][stroke=inherit][stroke-width=5][stroke-linecap=round]": [
-							"path[d=M12,11 h24 m0,13 h-24 m0,13 h24]"
-						]
-					}]
-				}, SortableList.#SVG)]
-			}, {
-				'.sortable-item-label': this.format_(item)
-			}, {
-				'.sortable-item-options': [el({
-					"svg[viewBox=0 0 24 48][width=12][height=24]" : [{
-						"g[fill=inherit][stroke=none]": [11, 24, 37].map(it => `ellipse[rx=5][ry=4][cx=12][cy=${it}]`)
-					}]
-				}, SortableList.#SVG)]
-			}, {
-				'.sortable-item-remove': [el({
-					"svg[viewBox=0 0 48 48][width=24][height=24]" : [{
-						"g[fill=none][stroke=inherit][stroke-width=6][stroke-linecap=round]": [
-							"path[d=M12,12 l24,24 m0,-24 l-24,24]"
-						]
-					}]
-				}, SortableList.#SVG)]
-			}]
-		});
-		const dragzone = node.querySelector(".sortable-item-dragzone");
-		dragzone.addEventListener("mouseenter", () => node.setAttribute("draggable", "true"));
-		dragzone.addEventListener("mouseleave", () => node.setAttribute("draggable", "false"));
+		const DRG = 'DRG';
+		const OPT = 'OPT';
+		const DEL = 'DEL';
+		const map = new Map();
+		const node = new El('.sortable-item', [
+			new El('.sortable-item-dragzone', [
+				new El('svg[viewBox=0 0 48 48][width=42][height=42]', [
+					new El('g[fill=none][stroke=inherit][stroke-width=5][stroke-linecap=round]', [
+						new El('path[d=M12,11 h24 m0,13 h-24 m0,13 h24]', null, SortableList.#SVG)
+					], SortableList.#SVG)
+				], SortableList.#SVG)
+			], null, map, DRG),
+			new El('.sortable-item-label', [ this.format_(item) ]),
+			new El('.sortable-item-options', [
+				new El('svg[viewBox=0 0 24 48][width=12][height=24]', [
+					new El('g[fill=inherit][stroke=none]', [
+						new El('ellipse[rx=5][ry=4][cx=12][cy=11]', null, SortableList.#SVG),
+						new El('ellipse[rx=5][ry=4][cx=12][cy=24]', null, SortableList.#SVG),
+						new El('ellipse[rx=5][ry=4][cx=12][cy=37]', null, SortableList.#SVG)
+					], SortableList.#SVG)
+				], SortableList.#SVG)
+			], null, map, OPT),
+			new El('.sortable-item-remove', [
+				new El('svg[viewBox=0 0 48 48][width=24][height=24]', [
+					new El('g[fill=none][stroke=inherit][stroke-width=6][stroke-linecap=round]', [
+						new El('path[d=M12,12 l24,24 m0,-24 l-24,24]', null, SortableList.#SVG)
+					], SortableList.#SVG)
+				], SortableList.#SVG)
+			], null, map, DEL)
+		]).build();
+		
+		map.get(DRG).addEventListener("mouseenter", () => node.setAttribute("draggable", "true"));
+		map.get(DRG).addEventListener("mouseleave", () => node.setAttribute("draggable", "false"));
+		map.get(OPT).addEventListener("click", e => new ContextMenu(...this.#optionsList).show(this.format_(item), e.x, e.y, item));
+		map.get(DEL).addEventListener("click", () => new ModalConfirm(
+			this.itemRemovalTitle, this.itemRemovalMessage, it => {
+				if (it) {
+					const pos = this.#list.indexOf(item);
+					if (0 <= pos && pos < this.length) {
+						this.onDelete_(pos);
+						this.onDatasetChanged_([...this.#list]);
+					} else throw new Error("Deleting failed! Index out of bounds!");
+				}
+			}, this.itemRemovalYes, this.itemRemovalNo).show());
+
 		node.addEventListener("dragstart", () => {
 			this.#dragged = this.#list.indexOf(item);
 			node.style.opacity = "0.4";
@@ -250,15 +431,12 @@ class SortableList {
 			node.style.opacity = null;
 			node.setAttribute("draggable", "false");
 		});
-
 		node.addEventListener("dragover", e => {
 			e.preventDefault();
 			this.#withDragDrop(item, (drag, drop) => node.style.backgroundImage = 
 					`linear-gradient(${180 * (drag > drop)}deg, var(--contrast) 5px, transparent 6px)`);
 		});
-
 		node.addEventListener("dragleave", () => node.style.backgroundImage = null);
-
 		node.addEventListener("drop", e => {
 			e.preventDefault();
 			node.style.backgroundImage = null;
@@ -270,32 +448,18 @@ class SortableList {
 			});
 			this.#dragged = -1;
 		});
-		const btnDel = node.querySelector(".sortable-item-remove");
-		btnDel.addEventListener("click", () => {
-			const index = this.#list.indexOf(node);
-			const modal = this.#disposableItems
-				? new ModalConfirm(
-					this.itemRemovalTitle_, this.itemRemovalMessage_, it => {
-						if (it) {
-							const pos = this.#list.indexOf(item);
-							if (0 <= pos && pos < this.length) {
-								this.onDelete_(pos);
-								this.onDatasetChanged_([...this.#list]);
-							} else throw new Error("Deleting failed! Index out of bounds!");
-						}
-					},
-					this.itemRemovalYes_, this.itemRemovalNo_
-				) : new ModalAlert(this.itemRemovalTitle_, this.itemRemovalDenied_);
-			modal.show();
-		});
-		const btnOpt = node.querySelector(".sortable-item-options");
-		/* moznosti + skrytie nepotrebnych tlacitok (mozno pomocou dat elementu) */
-		btnOpt.addEventListener("click", e => this.#showOptions(e.x, e.y, this.#list.indexOf(item), ...this.#optionsItem));
 		return node;
 	}
 
-	get #body() { return this.#html.querySelector(".sortable-body"); }
-
+	/**
+	 * Trigger a callback only when dragging an item over another exiting
+	 * item of the same list.
+	 * @private
+	 * @param {type} dropped - item of dragged item element
+	 * @param {type} fn - execute when moving an item to a different position
+	 * is possible. Function gets called with indexes of a dragged item and
+	 * a dropzone item in such order.
+	 */
 	#withDragDrop(dropped, fn) {
 		const drag = this.#dragged;
 		const drop = this.#list.indexOf(dropped);
@@ -303,37 +467,8 @@ class SortableList {
 	}
 
 	/**
-	 * 
-	 * @param {Number} x
-	 * @param {Number} y
-	 * @param {Object} index
-	 * @param {Action} options
-	 * @returns {undefined}
-	 */
-	#showOptions(x, y, index, ...options) {
-		const dispose = () => {
-			list.parentNode?.removeChild(list);
-			document.body.removeEventListener("mousedown", dispose);
-		};
-		const list = el({ "ul#option-list": [...options, new Action("Zrušiť", () => dispose())].map(it => {
-			const item = el({[`li${it.alias === "Zrušiť" ? ".small-screen" : ""}`]: it.alias});
-			item.addEventListener("mousedown", e => e.stopPropagation());
-			item.addEventListener("click", () => {
-				it.commit(index);
-				dispose();
-			});
-			return item;
-		})});
-		document.body.appendChild(list);
-		document.body.addEventListener("mousedown", dispose);
-		const left = Math.max(0, Math.min(x + list.clientWidth, window.innerWidth - 20) - list.clientWidth);
-		const top = Math.max(0, Math.min(y + list.clientHeight, window.innerHeight - 20) - list.clientHeight);
-		list.style.left = `${left}px`;
-		list.style.top = `${top}px`;
-	}
-
-	/**
-	 * Overí sa, či je vkladaný objekt platný!
+	 * Verify a validity of an item!
+	 * @protected
 	 * @param {Object} item
 	 * @returns {Boolean}
 	 */
@@ -342,23 +477,19 @@ class SortableList {
 	}
 
 	/**
-	 * Verifies item and transforms it into text
+	 * Transform a valid item into string
+	 * @protected
 	 * @param {Object} item
 	 * @returns {String}
 	 */
 	format_(item) {
-		if (!this.validateItem_(item)) throw new Error("Cannot format an invalid sortable item!");
-		return `${item}`;
-	}
-
-	onLoadList_(list) {
-		this.#list = list;
-		while (this.#body.firstElementChild) this.#body.removeChild(this.#body.firstElementChild);
-		for (let item of list) this.#body.appendChild(this.buildItem_(item));
+		if (this.validateItem_(item)) return `${item}`;
+		throw new Error("Cannot format an invalid sortable item!");
 	}
 
 	/**
 	 * New items are inserted at the end of the list by default.
+	 * @protected
 	 * @returns {Number} Default position where to insert the new item.
 	 */
 	getInsertDefaultPosition_() {
@@ -366,9 +497,10 @@ class SortableList {
 	}
 
 	/**
-	 * Create a new modal box in which you'll generate a new item. Method
-	 * insertFn picks up the created value and attempts to insert as new item.
-	 * @param {Function} insertFn - expects a newly created item as the one and only argument
+	 * Create a new modal box requesting data to generate a new item.
+	 * @protected
+	 * @param {Function} insertFn - Pick up the modal generated value as
+	 * an argument and add it to the list.
 	 * @returns {Modal}
 	 */
 	onCreateInsertModal_(insertFn) {
@@ -376,21 +508,39 @@ class SortableList {
 	}
 
 	/**
-	 * Vloženie nového prvku
+	 * Trigger when inserting a verified item to the list.
+	 * Always call super when overriding this method!
+	 * @protected
 	 * @param {Number} pos
 	 * @param {Object} item
-	 * @returns {undefined}
 	 */
 	onInsert_(pos, item) {
 		this.#list.splice(pos, 0, item);
 		this.#body.insertBefore(this.buildItem_(item), this.#body.children[pos]);
 	}
 
+	/**
+	 * Trigger when an item is replaced by another valid item.
+	 * Always call super when overriding this method!
+	 * @protected
+	 * @param {Number} pos
+	 * @param {Object} item
+	 * @returns {undefined}
+	 */
 	onUpdate_(pos, item) {
 		this.#list.splice(pos, 1, item);
+		this.#body.removeChild(this.#body.children[pos]);
 		this.#body.insertBefore(this.buildItem_(item), this.#body.children[pos]);
 	}
 
+	/**
+	 * Trigger when rearranging the order of items of the list.
+	 * Always call super when overriding this method!
+	 * @protected
+	 * @param {type} oldPos
+	 * @param {type} newPos
+	 * @returns {undefined}
+	 */
 	onMove_(oldPos, newPos) {
 		this.#list.splice(newPos, 0, ...this.#list.splice(oldPos, 1));
 		const dragged = this.#body.children[oldPos];
@@ -398,11 +548,24 @@ class SortableList {
 		this.#body.insertBefore(dragged, dropped);
 	}
 
+	/**
+	 * Trigger when deleting an item from list. 
+	 * Always call super when overriding this method!
+	 * @protected
+	 * @param {type} pos
+	 * @returns {undefined}
+	 */
 	onDelete_(pos) {
 		this.#list.splice(pos, 1);
 		this.#body.removeChild(this.#body.children[pos]);
 	}
 
+	/**
+	 * Trigger when emptying the list.
+	 * Always call super when overriding this method!
+	 * @protected
+	 * @returns {undefined}
+	 */
 	onClear_() {
 		this.#list.length = 0;
 		while (this.#body.firstElementChild)
@@ -410,11 +573,13 @@ class SortableList {
 	}
 
 	/**
-	 * 
+	 * Always trigger after data set is modified or changed.
+	 * @protected
 	 * @param {Array} items
-	 * @returns {undefined}
 	 */
 	onDatasetChanged_(items) {
-		(()=>{})(items); //does nothing, but editor doesn't show any warnings neither. You may remove this line if it bothers you.
+		//does nothing, but prevents editor from showing warnings I can't
+		//turn off! Oh well, it doesn't hinder the performace anyway.
+		(()=>{})(items);
 	}
 }

@@ -1,3 +1,7 @@
+body:has(.modal-bg) {
+	overflow: hidden;
+}
+
 .modal-bg {
 	box-sizing: content-box;
 	position: fixed;
@@ -73,9 +77,10 @@
 			}
 
 			& .modal-prompt {
-				background-color: var(--harmony-secondary);
+				position: relative;
+				background: var(--harmony-primary);
 				margin: 2px;
-				border: groove 3px var(--contrast);
+				border: groove 3px var(--tertiary);
 				padding: 2px;
 				width: calc(100% - 2 * (2px + 3px + 2px));
 
@@ -88,15 +93,8 @@
 					color: var(--contrast);
 				}
 
-				&:hover {
-					background: hsl(var(--hue), calc(1% * var(--sat)), calc(1% * ((var(--lum) - 50) * 40 / abs(calc(var(--lum) - 50)) + 50)));
-				}
-
 				&:active, &:focus {
-					background: hsl(var(--hue), calc(1% * var(--sat)), calc(1% * ((var(--lum) - 50) * 48 / abs(calc(var(--lum) - 50)) + 50)));
 					outline: none;
-					&::placeholder { color: var(--secondary) }
-					&::-ms-input-placeholder { color: var(--secondary) }
 				}
 			}
 		}
@@ -105,15 +103,16 @@
 			display: flex;
 			flex-flow: row wrap;
 			justify-content: center;
+
 			& button {
 				margin: 2px;
-				border: ridge 3px transparent;
-				color: var(--harmony-secondary);
+				border: solid 2px var(--tertiary);
+				color: var(--contrast);
 				background: var(--secondary);
 				padding: 2px 4px;
+				cursor: pointer;
+
 				&:hover {
-					border-color: var(--contrast);
-					color: var(--contrast);
 					background: var(--harmony-secondary);
 				}
 			}

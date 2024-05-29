@@ -1,0 +1,113 @@
+body:has(#context-menu) {
+	overflow: hidden;
+}
+
+#context-menu, #context-menu * {
+	box-sizing: border-box;
+}
+
+#context-menu {
+	display: grid;
+	grid-template-columns: auto 24px;
+	grid-template-rows: max-content auto;
+	position: fixed;
+	background: var(--harmony-primary);
+	color: var(--contrast);
+	user-select: none;
+	border: solid 2px var(--secondary);
+
+	& .close, & .title {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		grid-row: 1;
+	}
+
+	& .title {
+		grid-column: 1;
+		margin: 0;
+        padding: 4px 2px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+        overflow: hidden;
+		text-align: center;
+		min-width: 96px;
+		width: calc(max(max-content, 100%) - 24px);
+		max-width: 216px;
+	}
+
+	& .close {
+		grid-column: 2;
+		background: #A22;
+		color: #FFF;
+		cursor: pointer;
+
+		&:hover {
+			background: #C22;
+		}
+
+		&::after {
+			content: '×';
+		}
+	}
+
+	& ul.actions {
+		grid-column: 1 / span 2;
+		grid-row: 2;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		overflow-x: hidden;
+		overflow-y: auto;
+		scrollbar-width: thin;
+		scrollbar-color: var(--contrast) var(--primary);
+
+		& li.action {
+			margin: 0;
+			padding: 4px 20px 4px 8px;
+			display: -webkit-box;
+			-webkit-line-clamp: 1;
+			-webkit-box-orient: vertical;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			width: 100%;
+			cursor: pointer;
+
+			&:not(:last-child) {
+				margin-bottom: 4px;
+			}
+
+			&:hover {
+				background: var(--contrast);
+				color: var(--harmony-primary);
+			}
+		}
+	}
+}
+
+@media only screen and (max-width: 320px) {
+	#context-menu {
+		top: 0 !important;
+		right: 0 !important;
+		bottom: 0;
+		left: 0;
+		& ul.actions li.action {
+			text-align: center;
+		}
+	}
+}
+
+@media only screen and (min-width: 320px) {
+	#context-menu {
+		& ul.actions {
+			max-height: min(70vh, 600px);
+			& li.action {
+				min-width: 120px;
+				width: max(max-content, 100%);
+				max-width: 240px;
+			}
+		}
+	}
+}

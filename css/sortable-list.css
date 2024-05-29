@@ -55,6 +55,11 @@ ul#option-list {
 		cursor: pointer;
 		stroke: var(--contrast);
 		fill: var(--contrast);
+
+		&:hover {
+			stroke: var(--tertiary);
+			fill: var(--tertiary);
+		}
 	}
 
 	& .sortable-item, & .sortable-footer, & .sortable-list-actions {
@@ -98,7 +103,7 @@ ul#option-list {
 
 	& .sortable-body {
 		overflow-y: auto;
-		background: var(--harmony-secondary);
+		background: var(--harmony-primary);
 		scrollbar-width: thin;
 		scrollbar-color: var(--contrast) var(--primary);
 
@@ -127,10 +132,31 @@ ul#option-list {
 		}
 
 		& .sortable-item {
+			position: relative;
 			align-items: center;
-			background: var(--secondary);
 			margin: 4px 0;
 			font-size: 0.8em;
+			z-index: 0;
+
+			&::before {
+				content: "";
+				position: absolute;
+				left: 0;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				background: var(--secondary);
+				opacity: 0.05;
+				z-index: -1;
+			}
+
+			&:hover::before {
+				opacity: 0.10;
+			}
+
+			&:active::before {
+				opacity: 0.15;
+			}
 
 			& .sortable-item-label {
 				display: -webkit-box;
@@ -139,24 +165,15 @@ ul#option-list {
 				text-overflow: ellipsis;
 				overflow: hidden;
 			}
-
-			& svg:hover {
-				stroke: var(--tertiary);
-				fill: var(--tertiary);
-			}
 		}
 	}
 
 	& .sortable-footer {
-		padding-top: 1em;
+		padding: 0.5em 0.1em 0.25em 0.1em;
 		flex-flow: row-reverse;
 	}
 
-	&:not([data-disposable-list=true]) .sortable-list-remove {
-		display:none;
-	}
-
-	&:not([data-disposable-items=true]) .sortable-item-remove {
+	&:not([data-disposable=true]) .sortable-list-remove {
 		display:none;
 	}
 
@@ -168,7 +185,7 @@ ul#option-list {
 		display:none;
 	}
 
-	&:not([data-options-list=true]):not([data-disposable-list=true]) .sortable-list-actions {
+	&:not([data-options-list=true]):not([data-disposable=true]) .sortable-list-actions {
 		display:none;
 	}
 }
