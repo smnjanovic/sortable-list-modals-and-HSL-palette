@@ -90,98 +90,113 @@ class SortableList {
 	 * @type String
 	 */
 	get id() { return `sl-${this.#id}`; }
-
 	/**
 	 * List length
 	 * @public
 	 * @type Number
 	 */
 	get length() { return this.#list.length; };
-
-	#itemRemovalTitle = "Odstrániť položku";
-	#itemRemovalMessage = "Akcia je nevratná. Chcete pokračovať?";
-	#itemRemovalYes = "Vymazať";
-	#itemRemovalNo = "Späť";
-	#listRemovalTitle = "Vyprázdniť zoznam položiek!";
-	#listRemovalMessage = "Akcia je nevratná. Chcete pokračovať?";
-	#listRemovalYes = "Áno";
-	#listRemovalNo = "Nie";
-	#listDisposalTitle = "Zatvoriť!";
-	#listDisposalDenied = "Odstránenie zoznamu nie je povolené!";
-
+	/**
+	 * Description of list options
+	 * @protected
+	 * @type String
+	 */
+	get listOptionsHint_() { return "Možnosti zoznamu"; }
+	/**
+	 * Description of list disposal
+	 * @protected
+	 * @type String
+	 */
+	get listDisposalHint_() { return "Skryť zoznam"; }
+	/**
+	 * Description of item options
+	 * @protected
+	 * @type String
+	 */
+	get itemOptionsHint_() { return "Možnosti položky"; }
+	/**
+	 * Description of item removal
+	 * @protected
+	 * @type String
+	 */
+	get itemRemovalHint_() { return "Odstrániť položku"; }
+	/**
+	 * Description of item inserting
+	 * @protected
+	 * @type String
+	 */
+	get itemInsertionHint_() { return "Pridať položku"; }
+	/**
+	 * Description of item dragging
+	 * @protected
+	 * @type String
+	 */
+	get itemMoveHint_() { return "Presunúť položku"; }
+	/**
+	 * Description of list clearing
+	 * @protected
+	 * @type String
+	 */
+	get listClearingHint_() { return "Vyprázdniť"; }
 	/**
 	 * Modal title related to permanent list item removal
 	 * @protected
 	 * @type String
 	 */
-	get itemRemovalTitle() { return this.#itemRemovalTitle; };
-	set itemRemovalTitle(value) { this.#itemRemovalTitle = this.#stringOrThrow(value); };
-	
+	get itemRemovalTitle_() { return "Odstrániť položku"; };
 	/**
 	 * Modal message related to permanent list item removal
 	 * @protected
 	 * @type String
 	 */
-	get itemRemovalMessage() { return this.#itemRemovalMessage; };
-	set itemRemovalMessage(value) { this.#itemRemovalMessage = this.#stringOrThrow(value); };
+	get itemRemovalMessage_() { return "Akcia je nevratná. Chcete pokračovať?"; };
 	/**
 	 * Modal confirm button text related to permanent list item removal
 	 * @protected
 	 * @type String
 	 */
-	get itemRemovalYes() { return this.#itemRemovalYes; };
-	set itemRemovalYes(string) { this.#itemRemovalYes = this.#stringOrThrow(string); };
+	get itemRemovalYes_() { return "Áno"; };
 	/**
 	 * Modal cancel button text related to permanent list item removal
 	 * @protected
 	 * @type String
 	 */
-	get itemRemovalNo() { return this.#itemRemovalNo; };
-	set itemRemovalNo(string) { this.#itemRemovalNo = this.#stringOrThrow(string); };
-
+	get itemRemovalNo_() { return "Nie"; };
 	/**
 	 * Modal title related to permanent list wipe out
 	 * @protected
 	 * @type String
 	 */
-	get listRemovalTitle() { return this.#listRemovalTitle; };
-	set listRemovalTitle(string) { this.#listRemovalTitle = this.#stringOrThrow(string); };
+	get listRemovalTitle_() { return "Vyprázdniť zoznam položiek!"; };
 	/**
 	 * Modal message related to permanent list wipe out
 	 * @protected
 	 * @type String
 	 */
-	get listRemovalMessage() { return this.#listRemovalMessage; };
-	set listRemovalMessage(string) { this.#listRemovalMessage = this.#stringOrThrow(string); };
+	get listRemovalMessage_() { return "Akcia je nevratná. Chcete pokračovať?"; };
 	/**
 	 * Modal confirm button text related to permanent list wipe out
 	 * @protected
 	 * @type String
 	 */
-	get listRemovalYes() { return this.#listRemovalYes; };
-	set listRemovalYes(string) { this.#listRemovalYes = this.#stringOrThrow(string); };
+	get listRemovalYes_() { return "Áno"; };
 	/**
 	 * Modal cancel button text related to permanent list wipe out
 	 * @protected
 	 * @type String
 	 */
-	get listRemovalNo() { return this.#listRemovalNo; };
-	set listRemovalNo(string) { this.#listRemovalNo = this.#stringOrThrow(string); };
-	
+	get listRemovalNo_() { return "Nie"; };
 	/**	 * Modal title related to permanent list disposal
 	 * @protected
 	 * @type String
 	 */
-	get listDisposalTitle() { return this.#listDisposalTitle; };
-	set listDisposalTitle(string) { this.#listDisposalTitle = this.#stringOrThrow(string); };
+	get listDisposalTitle_() { return "Zatvoriť!"; };
 	/**
 	 * Modal warning related to unauthorized list disposal
 	 * @protected
 	 * @type String
 	 */
-	get listDisposalDenied() { return this.#listDisposalDenied; };
-	set listDisposalDenied(string) { this.#listDisposalDenied = this.#stringOrThrow(string); };
-
+	get listDisposalDenied_() { return "Odstránenie zoznamu nie je povolené!"; };
 
 	/**
 	 * @public
@@ -190,7 +205,6 @@ class SortableList {
 	 */
 	constructor(name) {
 		this.#name = name;
-		this.#html = this.buildContainer_();
 	}
 
 	#stringOrThrow(input) {
@@ -216,6 +230,7 @@ class SortableList {
 	 * @throws Error if there is at least one invalid item among arguments.
 	 */
 	setData(...items) {
+		if (!this.#html) this.#html = this.buildContainer_();
 		if (items.every(it => this.validateItem_(it))) {
 			this.#list = [...items];
 			while (this.#body.firstElementChild) this.#body.removeChild(this.#body.firstElementChild);
@@ -233,7 +248,7 @@ class SortableList {
 	 */
 	setDisposableList(disposable) {
 		this.#listDisposable = disposable;
-		this.#html.dataset.disposable = disposable;
+		if (this.#html) this.#html.dataset.disposable = disposable;
 	}
 
 	/**
@@ -244,7 +259,7 @@ class SortableList {
 	setListOptions(...actions) {
 		if (actions.every(it => it instanceof Action)) {
 			this.#optionsList = [...actions];
-			this.#html.dataset.optionsList = this.#optionsList.length > 0;
+			if (this.#html) this.#html.dataset.optionsList = this.#optionsList.length > 0;
 		} else throw new Error("Some arguments are invalid! An instance of Action is required!");
 	}
 
@@ -256,7 +271,7 @@ class SortableList {
 	setItemOptions(...actions) {
 		if (actions.every(it => it instanceof Action)) {
 			this.#optionsItem = [...actions];
-			this.#html.dataset.optionsItem = this.#optionsItem.length > 0;
+			if (this.#html) this.#html.dataset.optionsItem = this.#optionsItem.length > 0;
 		} else throw new Error("Some arguments are invalid! An instance of Action is required!");
 	}
 
@@ -267,6 +282,7 @@ class SortableList {
 	 * @param {Element} before
 	 */
 	setAsChild(parent, before) {
+		if (!this.#html) this.#html = this.buildContainer_();
 		parent.insertBefore(this.#html, before);
 	}
 
@@ -278,6 +294,7 @@ class SortableList {
 	 */
 	updateItem(pos, item) {
 		if (0 <= pos && pos < this.length) {
+			if (!this.#html) this.#html = this.buildContainer_();
 			this.onUpdate_(pos, item);
 			this.onDatasetChanged_([...this.#list]);
 		} else throw new Error("Inserting failed! Index out of bounds!");
@@ -302,7 +319,7 @@ class SortableList {
 					new El('h3', [this.#name], null, map, TITLE)
 				]),
 				new El('.sortable-list-actions', [
-					new El('.sortable-list-options', [
+					new El(`.sortable-list-options[title=${this.listOptionsHint_}]`, [
 						new El('svg[viewBox=0 0 24 48][width=12][height=24]', [
 							new El('g[fill=inherit][stroke=none]', [
 								new El(`ellipse[rx=5][ry=4][cx=12][cy=11]`, null, SortableList.#SVG),
@@ -311,7 +328,7 @@ class SortableList {
 							], SortableList.#SVG)
 						], SortableList.#SVG)
 					], null, map, OPT),
-					new El('.sortable-list-remove', [
+					new El(`.sortable-list-remove[title=${this.listDisposalHint_}]`, [
 						new El('svg[viewBox=0 0 48 48][width=24][height=24]', [
 							new El('g[fill=none][stroke=inherit][stroke-width=6][stroke-linecap=round]', [
 								new El('path[d=M12,12 l24,24 m0,-24 l-24,24]', null, SortableList.#SVG)
@@ -322,14 +339,14 @@ class SortableList {
 			]),
 			new El('.sortable-body', null, null, map, BODY),
 			new El('.sortable-footer', [
-				new El('.sortable-add', [
+				new El(`.sortable-add[title=${this.itemInsertionHint_}]`, [
 					new El('svg[viewBox=0 0 48 48][width=32][height=32]', [
 						new El('g[fill=none][stroke=inherit][stroke-width=6][stroke-linecap=round]', [
 							new El('path[d=M12,24 h24 m-12,-12 v24]', null, SortableList.#SVG)
 						], SortableList.#SVG)
 					], SortableList.#SVG)
 				], null, map, ADD),
-				new El('.sortable-clear', [
+				new El(`.sortable-clear[title=${this.listClearingHint_}]`, [
 					new El('svg[viewBox=0 0 48 48][width=32][height=32]', [
 						new El('g[stroke=none][fill=inherit]', [
 							new El('path[d=M39.5,9 A1 1 45 0 1 42,12.5 L31,21 '
@@ -351,7 +368,7 @@ class SortableList {
 		map.get(OPT).addEventListener("click", e => new ContextMenu(...this.#optionsList).show(this.format_(this.#title?.innerText ?? ''), e.x, e.y));
 		map.get(DEL).addEventListener("click", () => {
 			if (this.#listDisposable) container.parentNode?.removeChild(container);
-			else new ModalAlert(this.listDisposalTitle, this.listDisposalDenied).show();
+			else new ModalAlert(this.listDisposalTitle_, this.listDisposalDenied_).show();
 		});
 		map.get(ADD).addEventListener("click", () => this.onCreateInsertModal_(newItem => {
 			const pos = this.getInsertDefaultPosition_();
@@ -361,12 +378,12 @@ class SortableList {
 			} else throw new Error("Inserting failed! Index out of bounds!");
 		}).show());
 		map.get(CLR).addEventListener("click", () => new ModalConfirm(
-			this.listRemovalTitle, this.listRemovalMessage, it => {
+			this.listRemovalTitle_, this.listRemovalMessage_, it => {
 				if (it) {
 					this.onClear_();
 					this.onDatasetChanged_([...this.#list]);
 				}
-			}, this.listRemovalYes, this.listRemovalNo).show());
+			}, this.listRemovalYes_, this.listRemovalNo_).show());
 
 		return container;
 	}
@@ -413,7 +430,7 @@ class SortableList {
 		map.get(DRG).addEventListener("mouseleave", () => node.setAttribute("draggable", "false"));
 		map.get(OPT).addEventListener("click", e => new ContextMenu(...this.#optionsList).show(this.format_(item), e.x, e.y, item));
 		map.get(DEL).addEventListener("click", () => new ModalConfirm(
-			this.itemRemovalTitle, this.itemRemovalMessage, it => {
+			this.itemRemovalTitle_, this.itemRemovalMessage_, it => {
 				if (it) {
 					const pos = this.#list.indexOf(item);
 					if (0 <= pos && pos < this.length) {
@@ -421,7 +438,7 @@ class SortableList {
 						this.onDatasetChanged_([...this.#list]);
 					} else throw new Error("Deleting failed! Index out of bounds!");
 				}
-			}, this.itemRemovalYes, this.itemRemovalNo).show());
+			}, this.itemRemovalYes_, this.itemRemovalNo_).show());
 
 		node.addEventListener("dragstart", () => {
 			this.#dragged = this.#list.indexOf(item);
